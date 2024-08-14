@@ -148,6 +148,15 @@ define Package/rtl8821ce-firmware/install
 endef
 $(eval $(call BuildPackage,rtl8821ce-firmware))
 
+Package/rtl8821a-firmware = $(call Package/firmware-default,RealTek RTL8821AU firmware)
+define Package/rtl8821a-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtw88
+	$(INSTALL_DATA) \
+		$(DL_DIR)/rtw8821a_fw.bin \
+		$(1)/lib/firmware/rtw88/rtw8821a_fw.bin
+endef
+$(eval $(call BuildPackage,rtl8821a-firmware))
+
 Package/rtl8822be-firmware = $(call Package/firmware-default,RealTek RTL8822BE firmware)
 define Package/rtl8822be-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/rtw88
@@ -191,3 +200,32 @@ define Package/rtl8852ce-firmware/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8852c_fw.bin $(1)/lib/firmware/rtw89
 endef
 $(eval $(call BuildPackage,rtl8852ce-firmware))
+
+
+RTL_8812_URL:=https://raw.githubusercontent.com/mj22226/rtw88/master/firmware/
+
+define Download/rtl8812au-firmware
+  FILE:=rtw8812a_fw.bin
+  URL:=$(RTL_8812_URL)
+  HASH:=abdcca4e8bf76ebfba23d433de310ffefebd0ff9d01990639d4cd9602b32b71a
+endef
+
+RTL_8821_URL:=https://raw.githubusercontent.com/mj22226/rtw88/master/firmware/
+
+define Download/rtl8821a-firmware
+  FILE:=rtw8821a_fw.bin
+  URL:=$(RTL_8821_URL)
+  HASH:=4693ece655044d96f81bd3f3e8db14dc352b493219c4fd0a75788a6fbd9eac3c
+endef
+
+$(eval $(call Download,rtl8812au-firmware))
+$(eval $(call Download,rtl8821a-firmware))
+
+Package/rtl8812au-firmware = $(call Package/firmware-default,RealTek RTL8812au firmware)
+define Package/rtl8812au-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtw88
+	$(INSTALL_DATA) \
+		$(DL_DIR)/rtw8812a_fw.bin \
+		$(1)/lib/firmware/rtw88/rtw8812a_fw.bin
+endef
+$(eval $(call BuildPackage,rtl8812au-firmware))
