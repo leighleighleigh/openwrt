@@ -690,7 +690,6 @@ static int gpio_keys_remove(struct platform_device *pdev)
 
 static struct platform_driver gpio_keys_driver = {
 	.probe	= gpio_keys_probe,
-	.remove	= gpio_keys_remove,
 	.driver	= {
 		.name	= "gpio-keys",
 		.owner	= THIS_MODULE,
@@ -700,7 +699,6 @@ static struct platform_driver gpio_keys_driver = {
 
 static struct platform_driver gpio_keys_polled_driver = {
 	.probe	= gpio_keys_polled_probe,
-	.remove	= gpio_keys_remove,
 	.driver	= {
 		.name	= "gpio-keys-polled",
 		.owner	= THIS_MODULE,
