@@ -1,0 +1,99 @@
+From d4c8455792d61f8d5e2e53c77bead61052c108a3 Mon Sep 17 00:00:00 2001
+From: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Date: Sun, 11 Aug 2024 23:54:42 +0300
+Subject: [PATCH] wifi: rtw88: Dump the HW features only for some chips
+
+RTL8821AU and RTL8812AU don't support this. They hit the "failed to read
+hw feature report" error.
+
+Signed-off-by: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+---
+ drivers/net/wireless/realtek/rtw88/main.c     | 4 ++++
+ drivers/net/wireless/realtek/rtw88/main.h     | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8703b.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8723d.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8821c.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8822b.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8822c.c | 1 +
+ 7 files changed, 10 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw88/main.c
++++ b/drivers/net/wireless/realtek/rtw88/main.c
+@@ -1917,6 +1917,9 @@ static int rtw_dump_hw_feature(struct rt
+ 	u8 bw;
+ 	int i;
+ 
++	if (!rtwdev->chip->hw_feature_report)
++		goto print_hw_cap;
++
+ 	id = rtw_read8(rtwdev, REG_C2HEVT);
+ 	if (id != C2H_HW_FEATURE_REPORT) {
+ 		rtw_err(rtwdev, "failed to read hw feature report\n");
+@@ -1941,6 +1944,7 @@ static int rtw_dump_hw_feature(struct rt
+ 	    efuse->hw_cap.nss > rtwdev->hal.rf_path_num)
+ 		efuse->hw_cap.nss = rtwdev->hal.rf_path_num;
+ 
++print_hw_cap:
+ 	rtw_dbg(rtwdev, RTW_DBG_EFUSE,
+ 		"hw cap: hci=0x%02x, bw=0x%02x, ptcl=0x%02x, ant_num=%d, nss=%d\n",
+ 		efuse->hw_cap.hci, efuse->hw_cap.bw, efuse->hw_cap.ptcl,
+--- a/drivers/net/wireless/realtek/rtw88/main.h
++++ b/drivers/net/wireless/realtek/rtw88/main.h
+@@ -1201,6 +1201,7 @@ struct rtw_chip_info {
+ 	const struct rtw_fwcd_segs *fwcd_segs;
+ 
+ 	u8 usb_tx_agg_desc_num;
++	bool hw_feature_report;
+ 
+ 	u8 default_1ss_tx_path;
+ 
+--- a/drivers/net/wireless/realtek/rtw88/rtw8703b.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8703b.c
+@@ -2014,6 +2014,7 @@ const struct rtw_chip_info rtw8703b_hw_s
+ 	.max_power_index = 0x3f,
+ 	.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
+ 	.usb_tx_agg_desc_num = 1, /* Not sure if this chip has USB interface */
++	.hw_feature_report = true,
+ 
+ 	.path_div_supported = false,
+ 	.ht_supported = true,
+--- a/drivers/net/wireless/realtek/rtw88/rtw8723d.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8723d.c
+@@ -2172,6 +2172,7 @@ const struct rtw_chip_info rtw8723d_hw_s
+ 	.page_size = TX_PAGE_SIZE,
+ 	.dig_min = 0x20,
+ 	.usb_tx_agg_desc_num = 1,
++	.hw_feature_report = true,
+ 	.ht_supported = true,
+ 	.vht_supported = false,
+ 	.lps_deep_mode_supported = 0,
+--- a/drivers/net/wireless/realtek/rtw88/rtw8821c.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8821c.c
+@@ -2009,6 +2009,7 @@ const struct rtw_chip_info rtw8821c_hw_s
+ 	.page_size = TX_PAGE_SIZE,
+ 	.dig_min = 0x1c,
+ 	.usb_tx_agg_desc_num = 3,
++	.hw_feature_report = true,
+ 	.ht_supported = true,
+ 	.vht_supported = true,
+ 	.lps_deep_mode_supported = BIT(LPS_DEEP_MODE_LCLK),
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822b.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822b.c
+@@ -2550,6 +2550,7 @@ const struct rtw_chip_info rtw8822b_hw_s
+ 	.page_size = TX_PAGE_SIZE,
+ 	.dig_min = 0x1c,
+ 	.usb_tx_agg_desc_num = 3,
++	.hw_feature_report = true,
+ 	.ht_supported = true,
+ 	.vht_supported = true,
+ 	.lps_deep_mode_supported = BIT(LPS_DEEP_MODE_LCLK),
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822c.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822c.c
+@@ -5371,6 +5371,7 @@ const struct rtw_chip_info rtw8822c_hw_s
+ 	.page_size = TX_PAGE_SIZE,
+ 	.dig_min = 0x20,
+ 	.usb_tx_agg_desc_num = 3,
++	.hw_feature_report = true,
+ 	.default_1ss_tx_path = BB_PATH_A,
+ 	.path_div_supported = true,
+ 	.ht_supported = true,

@@ -1,0 +1,103 @@
+From aa15b3eaabefcbf069c8de6355c865895f6cedd6 Mon Sep 17 00:00:00 2001
+From: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Date: Sun, 11 Aug 2024 23:55:12 +0300
+Subject: [PATCH] wifi: rtw88: Allow different C2H RA report sizes
+
+The RTL8821AU and RTL8812AU have smaller RA report size, only 4 bytes.
+Avoid the "invalid ra report c2h length" error.
+
+Signed-off-by: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+---
+ drivers/net/wireless/realtek/rtw88/fw.c       | 8 ++++++--
+ drivers/net/wireless/realtek/rtw88/main.h     | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8703b.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8723d.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8821c.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8822b.c | 1 +
+ drivers/net/wireless/realtek/rtw88/rtw8822c.c | 1 +
+ 7 files changed, 12 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw88/fw.c
++++ b/drivers/net/wireless/realtek/rtw88/fw.c
+@@ -157,7 +157,10 @@ static void rtw_fw_ra_report_iter(void *
+ 
+ 	rate = GET_RA_REPORT_RATE(ra_data->payload);
+ 	sgi = GET_RA_REPORT_SGI(ra_data->payload);
+-	bw = GET_RA_REPORT_BW(ra_data->payload);
++	if (si->rtwdev->chip->c2h_ra_report_size < 7)
++		bw = si->bw_mode;
++	else
++		bw = GET_RA_REPORT_BW(ra_data->payload);
+ 
+ 	if (rate < DESC_RATEMCS0) {
+ 		si->ra_report.txrate.legacy = rtw_desc_to_bitrate(rate);
+@@ -199,7 +202,8 @@ static void rtw_fw_ra_report_handle(stru
+ {
+ 	struct rtw_fw_iter_ra_data ra_data;
+ 
+-	if (WARN(length < 7, "invalid ra report c2h length\n"))
++	if (WARN(length < rtwdev->chip->c2h_ra_report_size,
++		 "invalid ra report c2h length %d\n", length))
+ 		return;
+ 
+ 	rtwdev->dm_info.tx_rate = GET_RA_REPORT_RATE(payload);
+--- a/drivers/net/wireless/realtek/rtw88/main.h
++++ b/drivers/net/wireless/realtek/rtw88/main.h
+@@ -1202,6 +1202,7 @@ struct rtw_chip_info {
+ 
+ 	u8 usb_tx_agg_desc_num;
+ 	bool hw_feature_report;
++	u8 c2h_ra_report_size;
+ 
+ 	u8 default_1ss_tx_path;
+ 
+--- a/drivers/net/wireless/realtek/rtw88/rtw8703b.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8703b.c
+@@ -2015,6 +2015,7 @@ const struct rtw_chip_info rtw8703b_hw_s
+ 	.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16,
+ 	.usb_tx_agg_desc_num = 1, /* Not sure if this chip has USB interface */
+ 	.hw_feature_report = true,
++	.c2h_ra_report_size = 7,
+ 
+ 	.path_div_supported = false,
+ 	.ht_supported = true,
+--- a/drivers/net/wireless/realtek/rtw88/rtw8723d.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8723d.c
+@@ -2173,6 +2173,7 @@ const struct rtw_chip_info rtw8723d_hw_s
+ 	.dig_min = 0x20,
+ 	.usb_tx_agg_desc_num = 1,
+ 	.hw_feature_report = true,
++	.c2h_ra_report_size = 7,
+ 	.ht_supported = true,
+ 	.vht_supported = false,
+ 	.lps_deep_mode_supported = 0,
+--- a/drivers/net/wireless/realtek/rtw88/rtw8821c.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8821c.c
+@@ -2010,6 +2010,7 @@ const struct rtw_chip_info rtw8821c_hw_s
+ 	.dig_min = 0x1c,
+ 	.usb_tx_agg_desc_num = 3,
+ 	.hw_feature_report = true,
++	.c2h_ra_report_size = 7,
+ 	.ht_supported = true,
+ 	.vht_supported = true,
+ 	.lps_deep_mode_supported = BIT(LPS_DEEP_MODE_LCLK),
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822b.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822b.c
+@@ -2551,6 +2551,7 @@ const struct rtw_chip_info rtw8822b_hw_s
+ 	.dig_min = 0x1c,
+ 	.usb_tx_agg_desc_num = 3,
+ 	.hw_feature_report = true,
++	.c2h_ra_report_size = 7,
+ 	.ht_supported = true,
+ 	.vht_supported = true,
+ 	.lps_deep_mode_supported = BIT(LPS_DEEP_MODE_LCLK),
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822c.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822c.c
+@@ -5372,6 +5372,7 @@ const struct rtw_chip_info rtw8822c_hw_s
+ 	.dig_min = 0x20,
+ 	.usb_tx_agg_desc_num = 3,
+ 	.hw_feature_report = true,
++	.c2h_ra_report_size = 7,
+ 	.default_1ss_tx_path = BB_PATH_A,
+ 	.path_div_supported = true,
+ 	.ht_supported = true,
