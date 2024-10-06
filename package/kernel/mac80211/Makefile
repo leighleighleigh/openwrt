@@ -10,13 +10,13 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mac80211
 
-PKG_VERSION:=6.11.2
+PKG_VERSION:=6.12-rc20241004
 PKG_RELEASE:=1
 PKG_LICENSE:=GPL-2.0-only
 PKG_LICENSE_FILES:=COPYING
 
-PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources/
-PKG_HASH:=700ea5abef8dde9e3c6df2acd32ff443da735d773d56db9a80269e2237549b34
+PKG_SOURCE_URL:=https://github.com/mj22226/backports/releases/download/v6.12-rc20241004/
+PKG_HASH:=dce6cd3ee045ae8de21e5ff38d41c46152114a6ca8e94ab6669de18977490c2c
 
 PKG_SOURCE:=backports-$(PKG_VERSION).tar.xz
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)backports-$(PKG_VERSION)
